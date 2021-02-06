@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Post;
 use App\Interfaces\PostRepositoryInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 class PostRepository extends ServiceEntityRepository implements PostRepositoryInterface
@@ -30,10 +31,15 @@ class PostRepository extends ServiceEntityRepository implements PostRepositoryIn
     /**
      * @param Post $post
      * @return mixed
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function savePostToDatabase($post)
     {
-        // TODO: Implement savePostToDatabase() method.
+        $entityManager = $this->getEntityManager();
+
+        $entityManager->persist($post);
+        $entityManager->flush();
     }
 
     /**
