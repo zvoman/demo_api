@@ -5,11 +5,13 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\PostRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ApiResource(
  *     collectionOperations={"get"},
- *     itemOperations={"get"}
+ *     itemOperations={"get"},
+ *     normalizationContext={"groups"={"post:read"}}
  * )
  * @ORM\Entity(repositoryClass=PostRepository::class)
  * @ORM\Table(name="post")
@@ -25,16 +27,19 @@ class Post
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="posts")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"post:read"})
      */
     private $user;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"post:read"})
      */
     private $title;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"post:read"})
      */
     private $body;
 
