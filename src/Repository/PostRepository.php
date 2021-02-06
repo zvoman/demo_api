@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Post;
 use App\Interfaces\PostRepositoryInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -30,7 +31,7 @@ class PostRepository extends ServiceEntityRepository implements PostRepositoryIn
 
     /**
      * @param Post $post
-     * @return mixed
+     * @return void
      * @throws ORMException
      * @throws OptimisticLockException
      */
@@ -44,10 +45,15 @@ class PostRepository extends ServiceEntityRepository implements PostRepositoryIn
 
     /**
      * @param Post $post
-     * @return mixed
+     * @return void
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function deletePostFromDatabase($post)
     {
-        // TODO: Implement deletePostFromDatabase() method.
+        $postDB = $this->find($post->getId());
+
+        $this->_em->remove($postDB);
+        $this->_em->flush();
     }
 }

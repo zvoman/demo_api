@@ -64,14 +64,31 @@ class PostManager
         }
 
         $newPostsFromAPI = array_udiff($newPosts, $dbPosts, function ($a, $b) {
-            return strcmp($a->getId(), $b->getId());
-        }
+                return strcmp($a->getId(), $b->getId());
+            }
         );
 
         if ($newPostsFromAPI){
             foreach ($newPostsFromAPI as $newPost){
                 try {
                     $this->postRepository->savePostToDatabase($newPost);
+                } catch (OptimisticLockException $e) {
+                    //TODO Error
+                } catch (ORMException $e) {
+                    //TODO Error
+                }
+            }
+        }
+
+        $deletedPostFromAPI = array_udiff($dbPosts, $newPosts, function ($a, $b) {
+            return strcmp($a->getId(), $b->getId());
+        }
+        );
+
+        if ($deletedPostFromAPI){
+            foreach ($deletedPostFromAPI as $post) {
+                try {
+                    $this->postRepository->deletePostFromDatabase($post);
                 } catch (OptimisticLockException $e) {
                     //TODO Error
                 } catch (ORMException $e) {

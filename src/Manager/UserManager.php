@@ -75,6 +75,23 @@ class UserManager
             }
         }
 
+        $deletedUsersFromAPI = array_udiff($dbUsers, $newUsers, function ($a, $b) {
+            return strcmp($a->getId(), $b->getId());
+        }
+        );
+
+        if ($deletedUsersFromAPI){
+            foreach ($deletedUsersFromAPI as $user) {
+                try {
+                    $this->userRepository->deleteUserFromDatabase($user);
+                } catch (OptimisticLockException $e) {
+                    //TODO Error
+                } catch (ORMException $e) {
+                    //TODO Error
+                }
+            }
+        }
+
         return true;
     }
 }

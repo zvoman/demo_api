@@ -48,10 +48,14 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
 
     /**
      * @param User $user
-     * @return mixed
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function deleteUserFromDatabase($user)
     {
-        // TODO: Implement deleteUserFromDatabase() method.
+        $userDB = $this->find($user->getId());
+
+        $this->_em->remove($userDB);
+        $this->_em->flush();
     }
 }
