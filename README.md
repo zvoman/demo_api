@@ -8,12 +8,13 @@
 
 ## Installing
 
- - Install composer from https://getcomposer.org/download/ then composer install.
- - "copomser install" in folder where you wannt application
+ - clone repo
+ - install composer from https://getcomposer.org/download/ then composer install.
+ - "composer install" in folder where you want application
  
 #### create web server localy:
 
-- cd /etc/apache2/sites_available
+- cd /etc/apache2/sites-available
 - sudo nano "server_name".conf
 
 create virtual host
@@ -39,6 +40,13 @@ create virtual host
 - restart apache2: sudo service apache2 reload
 - if using windows open notepad with administrator privileges and then open  Windows\System32\drivers\etc\hosts.etc
 - add new line 127.0.0.1 new_server_name
+
+## Database
+
+- create database user
+- create .env.local and copy DATABASE_URL from .env, change db_user, db_password and set db_name
+- create database with "php bin/console doctrine:database:create"
+- migrate SQL with "php bin/console doctrine:migrations:migrate"
 
 ## Data
 
