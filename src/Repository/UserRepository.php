@@ -9,6 +9,10 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * Class UserRepository
+ * @package App\Repository
+ */
 class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface
 {
     /**
