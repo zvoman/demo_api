@@ -6,6 +6,7 @@ use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\PostRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -17,7 +18,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * )
  * @ORM\Entity(repositoryClass=PostRepository::class)
  * @ApiFilter(OrderFilter::class, properties={"title":"ASC"})
- * @ORM\Table(name="post")
+ * @ApiFilter(SearchFilter::class, properties={
+ *     "user":"exact",
+ *     "user.username":"partial"
+ * })
  */
 class Post
 {
@@ -36,13 +40,13 @@ class Post
 
     /**
      * @ORM\Column(type="text")
-     * @Groups({"post:read"})
+     * @Groups({"post:read", "user:read"})
      */
     private $title;
 
     /**
      * @ORM\Column(type="text")
-     * @Groups({"post:read"})
+     * @Groups({"post:read", "user:read"})
      */
     private $body;
 

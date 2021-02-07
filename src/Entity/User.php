@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use App\Repository\UserRepository;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -50,6 +51,7 @@ class User
     /**
      * @ORM\OneToMany(targetEntity=Post::class, mappedBy="user")
      * @Groups({"user:read"})
+     * @ApiSubresource()
      */
     private $posts;
 
