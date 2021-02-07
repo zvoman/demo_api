@@ -3,51 +3,74 @@
 
 namespace App\Manager;
 
-
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 
+/**
+ * Class UserManager
+ * @package App\Manager
+ */
 class UserManager
 {
+    /**
+     * @var UserRepository
+     */
     private $userRepository;
+    /**
+     * @var HttpClientInterface
+     */
     private $client;
 
+    /**
+     * UserManager constructor.
+     * @param HttpClientInterface $client
+     * @param UserRepository $userRepository
+     */
     public function __construct(HttpClientInterface $client, UserRepository $userRepository)
     {
         $this->client = $client;
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * @return User[]
+     */
     public function fetchUserDataFromDatabase()
     {
         return $this->userRepository->fetchAllUsers();
     }
 
+    /**
+     * @return array
+     * @throws Throwable
+     */
     public function fetchUserDataFromAPI()
     {
-        $response = $this->client->request(
-            'GET',
-            'http://jsonplaceholder.typicode.com/users'
-        );
-
-        $statusCode = $response->getStatusCode();
-
-        $content = $response->getContent();
-
-        $content = $response->toArray();
+        try {
+            $response = $this->client->request(
+                'GET',
+                'http://jsonplaceholder.typicode.com/users'
+            );
+            $content = $response->toArray();
+        } catch (Throwable $e) {
+            throw $e;
+        }
 
         return $content;
     }
 
-    public function synchronizeUserData()
+    /**
+     * @param $apiUsers
+     * @param $dbUsers
+     * @return int
+     */
+    public function synchronizeUserData($apiUsers, $dbUsers)
     {
-        $dbUsers = $this->fetchUserDataFromDatabase();
-        $apiUsers = $this->fetchUserDataFromAPI();
-
         $newUsers = [];
+
         foreach ($apiUsers as $apiUser){
             $user = new User();
             $user->setId($apiUser['id']);
@@ -59,39 +82,45 @@ class UserManager
         }
 
         $newUsersFromAPI = array_udiff($newUsers, $dbUsers, function ($a, $b) {
+                /** @var User $a */
+                /** @var User $b */
                 return strcmp($a->getId(), $b->getId());
             }
         );
 
+        $failedSavedUsers = 0;
         if ($newUsersFromAPI){
             foreach ($newUsersFromAPI as $newUser){
                 try {
                     $this->userRepository->saveUserToDatabase($newUser);
-                } catch (OptimisticLockException $e) {
-                    //TODO Error
                 } catch (ORMException $e) {
-                    //TODO Error
+                    $failedSavedUsers++;
+                    continue;
                 }
             }
         }
 
         $deletedUsersFromAPI = array_udiff($dbUsers, $newUsers, function ($a, $b) {
-            return strcmp($a->getId(), $b->getId());
-        }
+                /** @var User $a */
+                /** @var User $b */
+                return strcmp($a->getId(), $b->getId());
+            }
         );
 
+        $failedDeletedUsers = 0;
         if ($deletedUsersFromAPI){
             foreach ($deletedUsersFromAPI as $user) {
                 try {
                     $this->userRepository->deleteUserFromDatabase($user);
-                } catch (OptimisticLockException $e) {
-                    //TODO Error
                 } catch (ORMException $e) {
-                    //TODO Error
+                    $failedDeletedUsers++;
+                    continue;
                 }
             }
         }
 
-        return true;
+        $errors = $failedSavedUsers + $failedDeletedUsers;
+
+        return $errors;
     }
 }
