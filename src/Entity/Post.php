@@ -50,11 +50,18 @@ class Post
      */
     private $body;
 
+    /**
+     * @return int|null
+     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    /**
+     * @param int $id
+     * @return $this
+     */
     public function setId(int $id): self
     {
         $this->id = $id;
@@ -62,11 +69,18 @@ class Post
         return $this;
     }
 
+    /**
+     * @return User|null
+     */
     public function getUser(): ?User
     {
         return $this->user;
     }
 
+    /**
+     * @param User|null $user
+     * @return $this
+     */
     public function setUser(?User $user): self
     {
         $this->user = $user;
@@ -74,11 +88,18 @@ class Post
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getTitle(): ?string
     {
         return $this->title;
     }
 
+    /**
+     * @param string $title
+     * @return $this
+     */
     public function setTitle(string $title): self
     {
         $this->title = $title;
@@ -86,11 +107,18 @@ class Post
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getBody(): ?string
     {
         return $this->body;
     }
 
+    /**
+     * @param string $body
+     * @return $this
+     */
     public function setBody(string $body): self
     {
         $this->body = $body;

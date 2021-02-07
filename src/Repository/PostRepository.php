@@ -9,8 +9,16 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * Class PostRepository
+ * @package App\Repository
+ */
 class PostRepository extends ServiceEntityRepository implements PostRepositoryInterface
 {
+    /**
+     * PostRepository constructor.
+     * @param ManagerRegistry $registry
+     */
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Post::class);

@@ -6,16 +6,35 @@ use App\Entity\Post;
 use App\Entity\User;
 use App\Repository\PostRepository;
 use App\Repository\UserRepository;
-use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 
+/**
+ * Class PostManager
+ * @package App\Manager
+ */
 class PostManager
 {
+    /**
+     * @var PostRepository
+     */
     private $postRepository;
+    /**
+     * @var UserRepository
+     */
     private $userRepository;
+    /**
+     * @var HttpClientInterface
+     */
     private $client;
 
+    /**
+     * PostManager constructor.
+     * @param HttpClientInterface $client
+     * @param PostRepository $postRepository
+     * @param UserRepository $userRepository
+     */
     public function __construct(HttpClientInterface $client, PostRepository $postRepository, UserRepository $userRepository)
     {
         $this->postRepository = $postRepository;
@@ -23,32 +42,40 @@ class PostManager
         $this->client = $client;
     }
 
+    /**
+     * @return Post[]|null
+     */
     public function fetchPostDataFromDatabase()
     {
         return $this->postRepository->fetchAllPosts();
     }
 
+    /**
+     * @return array
+     * @throws Throwable
+     */
     public function fetchPostDataFromAPI()
     {
-        $response = $this->client->request(
-            'GET',
-            'http://jsonplaceholder.typicode.com/posts'
-        );
-
-        $statusCode = $response->getStatusCode();
-
-        $content = $response->getContent();
-
-        $content = $response->toArray();
+        try {
+            $response = $this->client->request(
+                'GET',
+                'http://jsonplaceholder.typicode.com/posts'
+            );
+            $content = $response->toArray();
+        } catch (Throwable $e) {
+            throw $e;
+        }
 
         return $content;
     }
 
-    public function synchronizePostData()
+    /**
+     * @param $apiPosts
+     * @param $dbPosts
+     * @return bool
+     */
+    public function synchronizePostData($apiPosts, $dbPosts)
     {
-        $dbPosts = $this->fetchPostDataFromDatabase();
-        $apiPosts = $this->fetchPostDataFromAPI();
-
         $newPosts = [];
         foreach ($apiPosts as $apiPost){
             /** @var User $user */
@@ -64,39 +91,45 @@ class PostManager
         }
 
         $newPostsFromAPI = array_udiff($newPosts, $dbPosts, function ($a, $b) {
+                /** @var User $a */
+                /** @var User $b */
                 return strcmp($a->getId(), $b->getId());
             }
         );
 
+        $failedSavedPosts = 0;
         if ($newPostsFromAPI){
             foreach ($newPostsFromAPI as $newPost){
                 try {
                     $this->postRepository->savePostToDatabase($newPost);
-                } catch (OptimisticLockException $e) {
-                    //TODO Error
                 } catch (ORMException $e) {
-                    //TODO Error
+                    $failedSavedPosts++;
+                    continue;
                 }
             }
         }
 
         $deletedPostFromAPI = array_udiff($dbPosts, $newPosts, function ($a, $b) {
-            return strcmp($a->getId(), $b->getId());
-        }
+                /** @var User $a */
+                /** @var User $b */
+                return strcmp($a->getId(), $b->getId());
+            }
         );
 
+        $failedDeletedPosts = 0;
         if ($deletedPostFromAPI){
             foreach ($deletedPostFromAPI as $post) {
                 try {
                     $this->postRepository->deletePostFromDatabase($post);
-                } catch (OptimisticLockException $e) {
-                    //TODO Error
                 } catch (ORMException $e) {
-                    //TODO Error
+                    $failedDeletedPosts++;
+                    continue;
                 }
             }
         }
 
-        return true;
+        $errors = $failedSavedPosts + $failedDeletedPosts;
+
+        return $errors;
     }
 }
