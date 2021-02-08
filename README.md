@@ -60,5 +60,4 @@ create virtual host
 - api will be visible on "new_server_name/api
 - showing only GET for Post and User data
 - /api/users - order by name and username
-- /api/users/{id}/posts - get posts for just one user
 - /api/posts - order by title, filter by user.username and user.id
